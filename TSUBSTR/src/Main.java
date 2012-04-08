@@ -6,7 +6,8 @@ import java.util.*;
 
 public class Main {
 
-    private final static HashSet<String> strings = new HashSet<String>();
+//    private final static HashSet<String> strings = new HashSet<String>();
+    private final static HashSet<Integer> stringHashs = new HashSet<Integer>();
     private final static Index index = new Index();
 
     public static void main(String[] args) throws IOException {
@@ -24,10 +25,11 @@ public class Main {
 
         //reading given tree
         //and building the index
-        char[] letters = bufferedReader.readLine().toCharArray();
+
         for (int i = 0; i < N; i++) {
-            letterFactory.getLetter(i).ch = letters[i];
+            letterFactory.getLetter(i).ch = (char) bufferedReader.read();
         }
+        bufferedReader.readLine();
         for (int i = 0; i < N - 1; i++) {
             tokens = bufferedReader.readLine().split("[ ]");
             int a = Integer.parseInt(tokens[0]);
@@ -45,7 +47,7 @@ public class Main {
         }
 
         //return value for K=1
-        index.value = "";
+        index.value = 0;
 
         //generate all possible sub-strings
         for (Letter letter : letterFactory.letters)
@@ -64,15 +66,16 @@ public class Main {
         printWriter.println(index.size);
 
         //printing answers string by string
+        char [] order = new char[26];
         for (int i = 0; i < Q; i++) {
-            tokens = bufferedReader.readLine().split("[ ]");
-            int K = Integer.parseInt(tokens[1]);
+            bufferedReader.read(order, 0, 26);
+            int K = Integer.parseInt(bufferedReader.readLine().substring(1));
             if (K > index.size) {
                 printWriter.println("-1");
                 continue;
             }
 
-            String stepAnswer = getString(index, tokens[0], K);
+            String stepAnswer = getString(index, order, K);
             printWriter.println(stepAnswer);
         }
 
@@ -82,9 +85,15 @@ public class Main {
     private static void subStringGenerator(Index index, Letter root, String subString) {
         String merged = subString + root.asString();
 
-        if (!strings.contains(merged)) {
-            strings.add(merged);
-            index.value = merged;
+//        if (!strings.contains(merged)) {
+//            strings.add(merged);
+//            index.value = merged;
+//        }
+
+        int hashCode = merged.hashCode();
+        if (!stringHashs.contains(hashCode)) {
+            stringHashs.add(hashCode);
+            index.value = root.ch; //asString(); //merged;
         }
 
         for (Letter successor : root.children.values()) {
@@ -97,18 +106,22 @@ public class Main {
         }
     }
     
-    private static String getString(Index index, String order, int K) {
-
-        if (K==1) return index.value;
+    private static String getString(Index index, char[] order, int K) {
+        if (K==1) {
+            StringBuilder sb = new StringBuilder();
+            while (index.parent!=null) {
+                sb.append(index.value);
+                index = index.parent;
+            }
+            return sb.reverse().toString();
+        }
 
         K--;
         
         String answer;
         Index subIndex = null;
-        char ch;
 
-        for (int i=0; i<order.length(); i++) {
-            ch = order.charAt(i);
+        for (char ch : order) {
             subIndex = index.getElement(ch);
             if (subIndex == null) continue;
             if (subIndex.size < K) K -= subIndex.size;
@@ -147,14 +160,14 @@ class LetterFactory {
 
 
 class Index {
-    //private int depth;
-    String value;
+    char value;
+    Index parent;
     int size = 1;
     private final HashMap<Character, Index> index = new HashMap<Character, Index>();
 
     private Index addElement(char key) {
         Index created = new Index();
-        //created.depth = depth + 1;
+        created.parent = this;
         index.put(key, created);
         size++;
         return created;
