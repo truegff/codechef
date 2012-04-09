@@ -6,8 +6,9 @@ import java.util.*;
 
 public class Main {
 
-//    private final static HashSet<String> strings = new HashSet<String>();
-    private final static HashSet<Integer> stringHashs = new HashSet<Integer>();
+    private final static char alphabet[] = new char[250000];
+    private final static HashSet<String> strings = new HashSet<String>();
+//    private final static HashSet<Integer> stringHashs = new HashSet<Integer>();
     private final static Index index = new Index();
 
     public static void main(String[] args) throws IOException {
@@ -21,13 +22,14 @@ public class Main {
         //initializing factory
         LetterFactory letterFactory = new LetterFactory();
         letterFactory.init(N);
-//        letterFactory.getLetter(0).depth=1;
+//      letterFactory.getLetter(0).depth=1;
 
         //reading given tree
         //and building the index
 
+        bufferedReader.read(alphabet, 0, N);
         for (int i = 0; i < N; i++) {
-            letterFactory.getLetter(i).ch = (char) bufferedReader.read();
+            letterFactory.getLetter(i).ch = alphabet[i];
         }
         bufferedReader.readLine();
         for (int i = 0; i < N - 1; i++) {
@@ -83,17 +85,12 @@ public class Main {
     }
 
     private static void subStringGenerator(Index index, Letter root, String subString) {
-        String merged = subString + root.asString();
+        String merged = subString + root.ch;
 
-//        if (!strings.contains(merged)) {
-//            strings.add(merged);
-//            index.value = merged;
-//        }
-
-        int hashCode = merged.hashCode();
-        if (!stringHashs.contains(hashCode)) {
-            stringHashs.add(hashCode);
-            index.value = root.ch; //asString(); //merged;
+        //int hashCode = merged.hashCode();
+        if (!strings.contains(merged)) {
+            strings.add(merged);
+            index.value = root.ch;
         }
 
         for (Letter successor : root.children.values()) {
@@ -139,10 +136,6 @@ class Letter {
     boolean visited;
     int depth;
     final HashMap<Character, Letter> children = new HashMap<Character, Letter>();
-
-    public String asString() {
-        return String.valueOf(ch);
-    }
 }
 
 class LetterFactory {
